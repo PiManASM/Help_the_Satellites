@@ -14,10 +14,8 @@ class Data_Retr:
             # parsing
             for line in data:
                 line.strip()
-                new_line = data.split('  ')
-                data_line = list(filter(lambda a: a != '', data)).strip()
+                data_line = list(filter(lambda a: a != '', line))
 
-        pass
 
 
 if __name__ == '__main__':
