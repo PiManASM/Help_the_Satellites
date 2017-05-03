@@ -63,6 +63,10 @@ if __name__ == "__main__":
 
     # query DB
     query = Controller()
-    data = query.query_data()
-    print(type(data))
-    print(data[0])
+    q_data = query.query_data('S17181')
+    # for row in data:
+    #     print(data)
+    # q_data.column_descriptions
+    # print(q_data)
+    print(q_data)
+

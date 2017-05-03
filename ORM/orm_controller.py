@@ -30,6 +30,24 @@ class Identification(Base):
     longitude = Column(String(64))
     drift_rate = Column(String(64))
 
+    def get_data(self):
+        data = {}
+        data.update({'cospar_desg': self.cospar_desg})
+        data.update({'norad_id': self.norad_id})
+        data.update({'name': self.name})
+        data.update({'alt_name': self.alt_name})
+        data.update({'julian_date': self.julian_date})
+        data.update({'gregorian_date': self.gregorian_date})
+        data.update({'geo_stat': self.geo_stat})
+        data.update({'orbital_periond': self.orbital_period})
+        data.update({'perigee': self.perigee})
+        data.update({'apogee': self.apogee})
+        data.update({'inclination': self.inclination})
+        data.update({'longitude': self.longitude})
+        data.update({'drift_rate': self.drift_rate})
+
+        return data
+
 
 class Controller:
 
@@ -58,11 +76,21 @@ class Controller:
     #         pass
 
     # the important class
-    def query_data(self):  # , query):
-        try:
-            for satellite in self.session.query(Identification.cospar_desg).\
-                    filter_by(norad_id='1986-096A'):
-                print(satellite)
-        except: # some exception
-            pass
-        return satellite
+    def query_data(self, query):
+        # try:
+        # for satellite in self.session.query(Identification).\
+        #         filter_by(cospar_desg=query):
+        #     print(satellite)
+        satellite = self.session.query(Identification).\
+            filter_by(cospar_desg=query)
+
+        # except: # some exception
+        #     pass
+        data = satellite.all()
+        for row in data:
+            ret_list = row.get_data()
+        # data = data[0].get_data()
+        # for row in data[0]:
+            # print(row)
+
+        return ret_list
