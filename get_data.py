@@ -43,7 +43,7 @@ from ORM.orm_controller import Controller
 #         return session_instances
 
 
-class Data():
+class Data:
     # Class handles data obtained from the orm. Gets data and
 
     def __init__(self):
@@ -57,7 +57,7 @@ class Data():
         return q_data
 
     def math_func(self):
-
+        # we need math!!!
         pass
 
 
