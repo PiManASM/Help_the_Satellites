@@ -2,7 +2,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine
 from sqlalchemy.exc import InvalidRequestError
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, LargeBinary, DateTime, BigInteger
 
 
 # class creates the connect on instantiation and contains methods for updating data to the database as well as pulling
@@ -10,6 +10,17 @@ from sqlalchemy import Column, Integer, String
 
 Base = declarative_base()
 engine = create_engine('mysql+mysqlconnector://root:root@localhost/satellite', echo=True)
+
+
+class Launch(Base):
+
+    __tablename__ = 'launches'
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    date = Column(DateTime(64))
+    launch_site = Column(LargeBinary(2048))
+    name = Column(String(64))
+    pre_name = Column(String(64))
 
 
 class Identification(Base):
@@ -63,17 +74,17 @@ class Controller:
     # def update_data(self):
     #     pass
 
-    # def add_data(self, add_map):
-    #
-    #     try:
-    #         self.session.add_all(add_map)
-    #         self.session.commit()
-    #     except InvalidRequestError:
-    #         self.session.rollback()
-    #         raise
-    #     except: #I cannot remember the name of the error, but the one that happens when nothing exist
-    #         # call nothing_exist and make stuff
-    #         pass
+    def add_data(self, add_map):
+
+        try:
+            self.session.add_all(add_map)
+            self.session.commit()
+        except InvalidRequestError:
+            self.session.rollback()
+            raise
+        except: #I cannot remember the name of the error, but the one that happens when nothing exist
+            # call nothing_exist and make stuff
+            pass
 
     # the important class
     def query_data(self, query):
