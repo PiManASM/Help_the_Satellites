@@ -1,8 +1,8 @@
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine
 from sqlalchemy.exc import InvalidRequestError
-from sqlalchemy import Column, Integer, String, LargeBinary, DateTime, BigInteger
+from sqlalchemy import Column, Integer, String, LargeBinary, DateTime, BigInteger, ForeignKey
 
 
 # class creates the connect on instantiation and contains methods for updating data to the database as well as pulling
@@ -16,12 +16,18 @@ class Launch(Base):
 
     __tablename__ = 'launches'
 
+    # rename to launch_id
     id = Column(BigInteger, primary_key=True, autoincrement=True)
+    # to be implemented; foreign key relationship with the identification table
+    cospar_desg = Column(String(6), ForeignKey('identification.cospar_desg'))
     date = Column(DateTime(64))
+    # to be re-tabled for normalization; launch-site table with site information
     launch_site = Column(LargeBinary(2048))
-    name = Column(String(64))
-    pre_name = Column(String(64))
+    rocket_name = Column(String(64))
+    # to be removed for normalization
+    satellite_name = Column(String(64))
 
+    identification = relationship('Identification', back_populates='launches')
 
 class Identification(Base):
 
@@ -31,8 +37,10 @@ class Identification(Base):
     norad_id = Column(String(10))  # primary_key=True)
     name = Column(String(64))
     alt_name = Column(String(64))
+    # may take out one date
     julian_date = Column(String(64))
     gregorian_date = Column(String(64))
+    # to be removed
     geo_stat = Column(String(64))
     orbital_period = Column(Integer())
     perigee = Column(Integer())
@@ -40,6 +48,8 @@ class Identification(Base):
     inclination = Column(Integer())
     longitude = Column(String(64))
     drift_rate = Column(String(64))
+
+    launches = relationship('Launch', back_populates='identification')
 
     def get_data(self):
         data = {}
@@ -59,6 +69,12 @@ class Identification(Base):
 
         return data
 
+    def get_name_col(self):
+        data = []
+        data.append(self.name)
+        data.append(self.alt_name)
+
+        return data
 
 class Controller:
 
@@ -86,22 +102,27 @@ class Controller:
             # call nothing_exist and make stuff
             pass
 
-    # the important class
+    # will be replaced with queries.py
     def query_data(self, query):
+        """Query types will be defined by a string"""
+        if query == 'name_col':
+            satellites = self.session.query(Identification.name, Identification.alt_name)
+            data = satellites.all()
+            return data
         # try:
         # for satellite in self.session.query(Identification).\
         #         filter_by(cospar_desg=query):
         #     print(satellite)
-        satellite = self.session.query(Identification).\
-            filter_by(cospar_desg=query)
+        else:
+            satellite = self.session.query(Identification). \
+                filter_by(cospar_desg=query)
 
-        # except: # some exception
-        #     pass
-        data = satellite.all()
-        for row in data:
-            ret_list = row.get_data()
-        # data = data[0].get_data()
-        # for row in data[0]:
-            # print(row)
-
-        return ret_list
+            # except: # some exception
+            #     pass
+            data = satellite.all()
+            for row in data:
+                ret_list = row.get_data()
+                # data = data[0].get_data()
+                # for row in data[0]:
+                # print(row)
+            return ret_list

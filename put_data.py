@@ -6,7 +6,92 @@ from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut
 import pickle
 
+"""
+BaseClass handles creating universal variables, initializing the SQL controller, and errors.
+Child class satellites and launches handle the specific files, data types, and initializing the SQLAlchemy classes 
+defined in ORM.orm_controller.
+"""
 
+
+class BaseClass:
+    """Class that will be inherited by the table specific tables"""
+
+    def __init__(self):
+        self.data_list = []
+        self.session_instances = []
+        print('initialized')
+        pass
+
+    def _addtodb(self):
+        # add exceptional handling
+        control = Controller()
+        control.add_data(data)
+
+    def _getdata(self):
+        with open(file) as data_file:
+            pass
+
+    def errors(self):
+        """Determines what happened in the case of errors"""
+        pass
+
+
+class satellites(BaseClass):
+    """Uses a generated CSV file to populate the DB"""
+    def putindb(self, file):
+        """Takes prepared CSV file and puts it in the data base"""
+        # Add error handling
+        self._getdata(file)
+        self._createobjects()
+        self._addtodb()
+
+    def _getdata(self, file):
+        with open(file) as open_file:
+            file_lines = csv.reader(open_file, delimiter=',')
+        for row in file_lines:
+            self.data_list.append(row)
+
+    def _createobjects(self):
+        session_instances = []
+        for new_row in self.data_list:
+            new_user = Identification(cospar_desg=new_row[0],
+                                      norad_id=new_row[1],
+                                      name=new_row[2],
+                                      alt_name=new_row[3],
+                                      # may need only one date
+                                      julian_date=new_row[4],
+                                      gregorian_date=new_row[5],
+                                      # to be removed
+                                      geo_stat=new_row[6],
+                                      orbital_period=new_row[7],
+                                      perigee=new_row[8],
+                                      apogee=new_row[9],
+                                      inclination=new_row[10],
+                                      longitude=new_row[11],
+                                      drift_rate=new_row[12]
+                                      )
+            self.session_instances.append(new_user)
+
+
+class launches(BaseClass):
+    """Will use BS4 data to populate the DB"""
+
+    def  getdata(self, file):
+        pass
+
+    def do_things(self):
+        self.name_list = control.query_data('name_col')
+        result = '0'
+        data_instances_copy = list(data_instances)
+        for satellite_list in data_instances_copy:
+            for item in self.name_list:
+                if satellite_list.satellite_name in item:
+                    result = '1'
+                    break
+            if result == '0':
+                data_instances.remove(satellite_list)
+
+        control.add_data(data_instances)
 
 # add to DB
 # new_file = DataRetr()
@@ -19,7 +104,7 @@ class DataRetr:
         self.launch_list = []
         self.launch_data = ['date', 'name', 'launch time', 'launch site']
         self.problem_sites = ['Cape Canaveral', 'Kennedy Space Center', 'Vandenberg Air Force Base']
-        self.name_list = ['name', 'pre name']
+        self.name_list = ['rocket name', 'satellite name']
 
 
     def get_launch_data(self, in_file):
@@ -42,6 +127,7 @@ class DataRetr:
         for row in temp_data_list:
             self.iden_list.append(dict(zip(self.launch_data, row)))
             # print(dict(zip(self.launch_data, row)))
+        # name processes; add to method and deal with multiple satellites on rocket
         for row in self.iden_list:
             names_raw = row['name'].split(u"\u2022")
             names = []
@@ -121,9 +207,11 @@ class DataRetr:
         session_instances = []
         for new_row in data:
             new_user = Launch(launch_site=new_row['launch site'],
-                              name=new_row['name'],
-                              pre_name=new_row['pre name'],
-                              date=new_row['date']
+                              rocket_name=new_row['rocket name'],
+                              satellite_name=new_row['satellite name'],
+                              date=new_row['date'],
+                              # to be implemented
+                              cospar_desg=None
             )
             session_instances.append(new_user)
         return session_instances
@@ -136,8 +224,10 @@ class DataRetr:
                                       norad_id=new_row[1],
                                       name=new_row[2],
                                       alt_name=new_row[3],
+                                      # may need only one date
                                       julian_date=new_row[4],
                                       gregorian_date=new_row[5],
+                                      # to be removed
                                       geo_stat=new_row[6],
                                       orbital_period=new_row[7],
                                       perigee=new_row[8],
@@ -153,14 +243,37 @@ class DataRetr:
 if __name__ == '__main__':
     from ORM.orm_controller import Controller
 
+    # add geo data to DB
+    # add = DataRetr()
+    # file = 'data/geo.csv'
+    # data = add.read_sat_file(file)
+    # print(data)
+    # control = Controller()
+    # control.add_data(data)
+
+    # add launch data to DB
     add = DataRetr()
     file = 'data/launches.txt'
     data = add.get_launch_data(file)
-    print(data)
+
     data_instances = add.create_Launch_ojj(data)
     control = Controller()
+
+    # make sure that only geo satellites are added to the DB; to go to a method
+    name_list = control.query_data('name_col')
+    result = '0'
+    data_instances_copy = list(data_instances)
+    for satellite_list in data_instances_copy:
+        for item in name_list:
+            if satellite_list.satellite_name in item[0:2]:
+                result = '1'
+                break
+        if result == '0':
+            data_instances.remove(satellite_list)
+
     control.add_data(data_instances)
-    # print('Finished motherfucker')
+
+    # split names; implemented in the DataRetr class
     # for row in data:
         # print(row['name'])
         # name_list = ['name', 'pre_name']
