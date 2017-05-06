@@ -19,6 +19,7 @@ class BaseClass:
     def __init__(self):
         self.data_list = []
         self.session_instances = []
+        self.control = Controller()
         print('initialized')
         pass
 
@@ -27,9 +28,6 @@ class BaseClass:
         control = Controller()
         control.add_data(data)
 
-    def _getdata(self):
-        with open(file) as data_file:
-            pass
 
     def errors(self):
         """Determines what happened in the case of errors"""
@@ -52,7 +50,6 @@ class satellites(BaseClass):
             self.data_list.append(row)
 
     def _createobjects(self):
-        session_instances = []
         for new_row in self.data_list:
             new_user = Identification(cospar_desg=new_row[0],
                                       norad_id=new_row[1],
@@ -79,19 +76,19 @@ class launches(BaseClass):
     def  getdata(self, file):
         pass
 
-    def do_things(self):
-        self.name_list = control.query_data('name_col')
-        result = '0'
-        data_instances_copy = list(data_instances)
-        for satellite_list in data_instances_copy:
-            for item in self.name_list:
-                if satellite_list.satellite_name in item:
-                    result = '1'
-                    break
-            if result == '0':
-                data_instances.remove(satellite_list)
-
-        control.add_data(data_instances)
+    # def do_things(self):
+    #     self.name_list = control.query_data('name_col')
+    #     result = '0'
+    #     data_instances_copy = list(data_instances)
+    #     for satellite_list in data_instances_copy:
+    #         for item in self.name_list:
+    #             if satellite_list.satellite_name in item:
+    #                 result = '1'
+    #                 break
+    #         if result == '0':
+    #             data_instances.remove(satellite_list)
+    #
+    #     control.add_data(data_instances)
 
 # add to DB
 # new_file = DataRetr()
@@ -252,26 +249,26 @@ if __name__ == '__main__':
     # control.add_data(data)
 
     # add launch data to DB
-    add = DataRetr()
-    file = 'data/launches.txt'
-    data = add.get_launch_data(file)
-
-    data_instances = add.create_Launch_ojj(data)
-    control = Controller()
-
-    # make sure that only geo satellites are added to the DB; to go to a method
-    name_list = control.query_data('name_col')
-    result = '0'
-    data_instances_copy = list(data_instances)
-    for satellite_list in data_instances_copy:
-        for item in name_list:
-            if satellite_list.satellite_name in item[0:2]:
-                result = '1'
-                break
-        if result == '0':
-            data_instances.remove(satellite_list)
-
-    control.add_data(data_instances)
+    # add = DataRetr()
+    # file = 'data/launches.txt'
+    # data = add.get_launch_data(file)
+    #
+    # data_instances = add.create_Launch_ojj(data)
+    # control = Controller()
+    #
+    # # make sure that only geo satellites are added to the DB; to go to a method
+    # name_list = control.query_data('name_col')
+    # result = '0'
+    # data_instances_copy = list(data_instances)
+    # for satellite_list in data_instances_copy:
+    #     for item in name_list:
+    #         if satellite_list.satellite_name in item[0:2]:
+    #             result = '1'
+    #             break
+    #     if result == '0':
+    #         data_instances.remove(satellite_list)
+    #
+    # control.add_data(data_instances)
 
     # split names; implemented in the DataRetr class
     # for row in data:

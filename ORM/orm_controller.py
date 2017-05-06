@@ -12,69 +12,118 @@ Base = declarative_base()
 engine = create_engine('mysql+mysqlconnector://root:root@localhost/satellite', echo=True)
 
 
+class Site(Base):
+
+    __tablename__ = 'launch_site'
+
+    launch_site_id = Column(Integer, primary_key=True, autoincrement=True)
+    address = Column(String(64))
+    latitude = Column(Integer)
+    longitude = Column(Integer)
+
+    launch = relationship('Launch', back_populates='launches')
+
+
 class Launch(Base):
 
     __tablename__ = 'launches'
 
-    # rename to launch_id
-    id = Column(BigInteger, primary_key=True, autoincrement=True)
-    # to be implemented; foreign key relationship with the identification table
-    cospar_desg = Column(String(6), ForeignKey('identification.cospar_desg'))
-    date = Column(DateTime(64))
-    # to be re-tabled for normalization; launch-site table with site information
-    launch_site = Column(LargeBinary(2048))
-    rocket_name = Column(String(64))
-    # to be removed for normalization
-    satellite_name = Column(String(64))
+    launch_id = Column(Integer, primary_key=True, autoincrement=True)
+    launch_date = Column(DateTime)
+    site = Column(Integer, ForeignKey('launch_site.launch_site_id'))
+    rocket_name = Column(String(45))
 
     identification = relationship('Identification', back_populates='launches')
+    launch_site = relationship('Site', back_populates='launches')
+
 
 class Identification(Base):
 
     __tablename__ = 'identification'
 
     cospar_desg = Column(String(6), primary_key=True)
-    norad_id = Column(String(10))  # primary_key=True)
+    norad_id = Column(String(64))
     name = Column(String(64))
     alt_name = Column(String(64))
-    # may take out one date
-    julian_date = Column(String(64))
-    gregorian_date = Column(String(64))
-    # to be removed
-    geo_stat = Column(String(64))
+    gregorian_date = Column(DateTime)
     orbital_period = Column(Integer())
     perigee = Column(Integer())
     apogee = Column(Integer())
     inclination = Column(Integer())
     longitude = Column(String(64))
     drift_rate = Column(String(64))
+    launch = Column(Integer, ForeignKey('launches.launch_id'))
 
     launches = relationship('Launch', back_populates='identification')
 
-    def get_data(self):
-        data = {}
-        data.update({'cospar_desg': self.cospar_desg})
-        data.update({'norad_id': self.norad_id})
-        data.update({'name': self.name})
-        data.update({'alt_name': self.alt_name})
-        data.update({'julian_date': self.julian_date})
-        data.update({'gregorian_date': self.gregorian_date})
-        data.update({'geo_stat': self.geo_stat})
-        data.update({'orbital_periond': self.orbital_period})
-        data.update({'perigee': self.perigee})
-        data.update({'apogee': self.apogee})
-        data.update({'inclination': self.inclination})
-        data.update({'longitude': self.longitude})
-        data.update({'drift_rate': self.drift_rate})
 
-        return data
+# class Launch(Base):
+#
+#     __tablename__ = 'launches'
+#
+#     # rename to launch_id
+#     id = Column(Integer, primary_key=True, autoincrement=True)
+#     # to be implemented; foreign key relationship with the identification table
+#     cospar_desg = Column(String(6), ForeignKey('identification.cospar_desg'))
+#     # rename to launch date as DATETIME
+#     date = Column(DateTime(64))
+#     # to be re-tabled for normalization; launch-site table with site information
+#     launch_site = Column(LargeBinary(2048))
+#     rocket_name = Column(String(64))
+#     # to be removed for normalization
+#     satellite_name = Column(String(64))
+#
+#     identification = relationship('Identification', back_populates='launches')
+#
+#
+# class Identification(Base):
+#
+#     __tablename__ = 'identification'
+#
+#     cospar_desg = Column(String(6), primary_key=True)
+#     norad_id = Column(String(10))  # primary_key=True)
+#     name = Column(String(64))
+#     alt_name = Column(String(64))
+#     # may take out one date
+#     julian_date = Column(String(64))
+#     # as DATETIME
+#     gregorian_date = Column(String(64))
+#     # to be removed
+#     geo_stat = Column(String(64))
+#     orbital_period = Column(Integer())
+#     perigee = Column(Integer())
+#     apogee = Column(Integer())
+#     inclination = Column(Integer())
+#     longitude = Column(String(64))
+#     drift_rate = Column(String(64))
+#
+#     launches = relationship('Launch', back_populates='identification')
+#
+#     def get_data(self):
+#         data = {}
+#         data.update({'cospar_desg': self.cospar_desg})
+#         data.update({'norad_id': self.norad_id})
+#         data.update({'name': self.name})
+#         data.update({'alt_name': self.alt_name})
+#         data.update({'julian_date': self.julian_date})
+#         data.update({'gregorian_date': self.gregorian_date})
+#         data.update({'geo_stat': self.geo_stat})
+#         data.update({'orbital_periond': self.orbital_period})
+#         data.update({'perigee': self.perigee})
+#         data.update({'apogee': self.apogee})
+#         data.update({'inclination': self.inclination})
+#         data.update({'longitude': self.longitude})
+#         data.update({'drift_rate': self.drift_rate})
+#
+#         return data
+#
+#     def get_name_col(self):
+#         data = []
+#         data.append(self.name)
+#         data.append(self.alt_name)
+#
+#         return data
 
-    def get_name_col(self):
-        data = []
-        data.append(self.name)
-        data.append(self.alt_name)
-
-        return data
 
 class Controller:
 
