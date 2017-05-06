@@ -75,9 +75,11 @@ class DataRetr:
         time = date_time.split(':')[1].strip()[0:4]
         time = time[0:2] + ':' + time[2:4]
         if month in full_months:
-            datetime_object = datetime.strptime(month + ' ' + day + ' ' + '2017' + ' ' + time + ' UTC', '%B %d %Y %H:%M %Z')
+            datetime_object = datetime.strptime(month + ' ' + day + ' ' + '2017' + ' ' + time + ' UTC',
+                                                '%B %d %Y %H:%M %Z')
         else:
-            datetime_object = datetime.strptime(month + ' ' + day + ' ' + '2017' + ' ' + time + ' UTC', '%b %d %Y %H:%M %Z')
+            datetime_object = datetime.strptime(month + ' ' + day + ' ' + '2017' + ' ' + time + ' UTC',
+                                                '%b %d %Y %H:%M %Z')
         return datetime_object
 
     def process_launch_site(self, launch_site):
@@ -99,6 +101,7 @@ class DataRetr:
                 except GeocoderTimedOut:
                     return None
         # print(location)
+        location = pickle.dumps(location)
         return location
 
     def get_from_web(self, file):
