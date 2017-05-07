@@ -9,7 +9,7 @@ from sqlalchemy import Column, Integer, Float, String, LargeBinary, DateTime, Bi
 # data from the database
 
 Base = declarative_base()
-engine = create_engine('mysql+mysqlconnector://root:root@localhost/satellite', echo=True)
+engine = create_engine('mysql+mysqlconnector://remote:BiolaComputerScience@54.183.80.90/satellite', echo=True)
 
 
 class Site(Base):
