@@ -4,7 +4,6 @@ import unicodedata
 from datetime import datetime
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut
-import pickle
 
 """
 BaseClass handles creating universal variables, initializing the SQL controller, and errors.
@@ -55,23 +54,63 @@ class satellites(BaseClass):
                                       norad_id=new_row[1],
                                       name=new_row[2],
                                       alt_name=new_row[3],
-                                      # may need only one date
-                                      julian_date=new_row[4],
                                       gregorian_date=new_row[5],
-                                      # to be removed
-                                      geo_stat=new_row[6],
                                       orbital_period=new_row[7],
                                       perigee=new_row[8],
                                       apogee=new_row[9],
                                       inclination=new_row[10],
                                       longitude=new_row[11],
-                                      drift_rate=new_row[12]
+                                      drift_rate=new_row[12],
+                                      launch=[]
                                       )
             self.session_instances.append(new_user)
 
 
+class launchsite(BaseClass):
+
+   def __init__(self):
+        self.problem_sites = ['Cape Canaveral', 'Kennedy Space Center', 'Vandenberg Air Force Base']
+
+    def process_launch_site(self, launch_site):
+        # need GeocoderTimedOut error handling
+        if launch_site.find('Launch site') != -1:
+            launch_site = launch_site.split(':', 1)[1]
+        if any(string in launch_site for string in self.problem_sites):
+            launch_site = launch_site.split(',', 1)[1].strip()
+
+        locator = Nominatim()
+        try:
+            location = locator.geocode(launch_site, language='en')
+        except GeocoderTimedOut:
+            try:
+                location = locator.geocode(launch_site, language='en')
+            except GeocoderTimedOut:
+                try:
+                    location = locator.geocode(launch_site, language='en')
+                except GeocoderTimedOut:
+                    return None
+        # print(location)
+        location_dict = {'address': location.address, 'latitude': location.latitude, 'longitude': location.latitude}
+        return location_dict
+
+
 class launches(BaseClass):
     """Will use BS4 data to populate the DB"""
+    def __init__(self):
+        pass
+
+    def get_from_web(self, file):
+        pass
+
+    def read_sat_file(self, file):
+        # read the file
+        with open(file) as csvfile: # 'data/geo.csv'
+            data = csv.reader(csvfile, delimiter=',')
+            # ensure list is empty
+            self.iden_list = []
+            for row in data:
+                self.iden_list.append(row)
+        return self.create_Iden_obj()
 
     def  getdata(self, file):
         pass
@@ -124,6 +163,7 @@ class DataRetr:
         for row in temp_data_list:
             self.iden_list.append(dict(zip(self.launch_data, row)))
             # print(dict(zip(self.launch_data, row)))
+
         # name processes; add to method and deal with multiple satellites on rocket
         for row in self.iden_list:
             names_raw = row['name'].split(u"\u2022")
@@ -131,6 +171,7 @@ class DataRetr:
             for i in range(0, len(names_raw)):
                 names.append(names_raw[i].replace(names_raw[i], names_raw[i].strip()))
             row.update(zip(self.name_list, names))
+
         for row in self.iden_list:
             row.update({'date': self.process_date_time(row['date'], row['launch time'])})
             if 'launch time' in row:

@@ -2,7 +2,7 @@ from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine
 from sqlalchemy.exc import InvalidRequestError
-from sqlalchemy import Column, Integer, String, LargeBinary, DateTime, BigInteger, ForeignKey
+from sqlalchemy import Column, Integer, Float, String, LargeBinary, DateTime, BigInteger, ForeignKey
 
 
 # class creates the connect on instantiation and contains methods for updating data to the database as well as pulling
@@ -18,10 +18,10 @@ class Site(Base):
 
     launch_site_id = Column(Integer, primary_key=True, autoincrement=True)
     address = Column(String(64))
-    latitude = Column(Integer)
-    longitude = Column(Integer)
+    latitude = Column(Float)
+    longitude = Column(Float)
 
-    launch = relationship('Launch', back_populates='launches')
+    launches = relationship('Launch', back_populates='launch_site')
 
 
 class Launch(Base):
@@ -45,6 +45,7 @@ class Identification(Base):
     norad_id = Column(String(64))
     name = Column(String(64))
     alt_name = Column(String(64))
+    # rename: date
     gregorian_date = Column(DateTime)
     orbital_period = Column(Integer())
     perigee = Column(Integer())
