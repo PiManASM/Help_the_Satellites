@@ -1,4 +1,7 @@
 from bs4 import BeautifulSoup
+import csv
+
+
 
 with open('data/soup.txt') as file:
     soup = BeautifulSoup(file, 'html.parser')
@@ -29,4 +32,19 @@ for item in session_list:
 
 print(len(session_list)/4)
 # print(index)
+
+
+output = [] 
+row = []
+index = 0 
+
+for item in session_list:
+	if (item > "Jan. 0") & (item < "Jan. 32") or (item > "Feb. 0") & (item < "Feb. 32") or (item == "Feb. 5") or (item > "March 0") & (item < "March 32")or (item > "April 0") & (item < "April 32")or (item > "May 0") & (item < "May 32")or (item > "June 0") & (item < "June 32")or (item > "July 0") & (item < "July 32")or (item > "Aug. 0") & (item < "Aug. 32")or (item > "Sept. 0") & (item < "Sept. 32")or (item > "Oct. 0") & (item < "Oct. 32")or (item > "Nov. 0") & (item < "Nov. 32")or (item > "Dec. 0") & (item < "Dec. 32"):
+		row.append(session_list[index])
+		row.append(session_list[index + 1])
+		row.append(session_list[index + 3])
+		output.append(row)
+		row = []
+
+	index = index + 1 
 
