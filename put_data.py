@@ -68,7 +68,7 @@ class satellites(BaseClass):
 
 class launchsite(BaseClass):
 
-   def __init__(self):
+    def __init__(self):
         self.problem_sites = ['Cape Canaveral', 'Kennedy Space Center', 'Vandenberg Air Force Base']
 
     def process_launch_site(self, launch_site):
@@ -100,21 +100,60 @@ class launches(BaseClass):
         pass
 
     def get_from_web(self, file):
-        pass
+        from bs4 import BeautifulSoup
+        soup = BeautifulSoup(open('data/sat_launch.html'), 'html.parser')
 
-    def read_sat_file(self, file):
-        # read the file
-        with open(file) as csvfile: # 'data/geo.csv'
-            data = csv.reader(csvfile, delimiter=',')
-            # ensure list is empty
-            self.iden_list = []
-            for row in data:
-                self.iden_list.append(row)
-        return self.create_Iden_obj()
+        string_data = []
 
-    def  getdata(self, file):
-        pass
+        for string in soup.stripped_strings:
+            string_data.append(string)
+        return string_data
 
+    # def read_sat_file(self, file):
+    #     # read the file
+    #     with open(file) as csvfile: # 'data/geo.csv'
+    #         data = csv.reader(csvfile, delimiter=',')
+    #         # ensure list is empty
+    #         self.iden_list = []
+    #         for row in data:
+    #             self.iden_list.append(row)
+    #     return self.create_Iden_obj()
+
+    def get_launch_data(self, in_file):
+        temp_data_list = []
+        # with open(in_file) as open_file:
+        #     for line in open_file:
+        #         if line == '\n':
+        #             pass
+        #         else:
+        #             temp_data_list.append(line)
+        for row in temp_data_list:
+            self.iden_list.append(unicodedata.normalize('NFKD', row).strip())
+        # split list from this quick file
+        size = 4
+        self.iden_list = [self.iden_list[i:i + size] for i in range(0, len(self.iden_list), size)]
+
+        # create temporary list and clear instance list.
+        temp_data_list = self.iden_list
+        self.iden_list = []
+        for row in temp_data_list:
+            self.iden_list.append(dict(zip(self.launch_data, row)))
+            # print(dict(zip(self.launch_data, row)))
+
+        # name processes; add to method and deal with multiple satellites on rocket
+        for row in self.iden_list:
+            names_raw = row['name'].split(u"\u2022")
+            names = []
+            for i in range(0, len(names_raw)):
+                names.append(names_raw[i].replace(names_raw[i], names_raw[i].strip()))
+            row.update(zip(self.name_list, names))
+
+        for row in self.iden_list:
+            row.update({'date': self.process_date_time(row['date'], row['launch time'])})
+            if 'launch time' in row:
+                del row['launch time']
+            row.update({'launch site': self.process_launch_site(row['launch site'])})
+        return self.iden_list
     # def do_things(self):
     #     self.name_list = control.query_data('name_col')
     #     result = '0'
@@ -225,7 +264,7 @@ class DataRetr:
                 except GeocoderTimedOut:
                     return None
         # print(location)
-        location = pickle.dumps(location)
+        # location = pickle.dumps(location)
         return location
 
     def get_from_web(self, file):
@@ -321,3 +360,71 @@ if __name__ == '__main__':
         # print(row['name'])
         # for letter in name:
         #     pass
+
+    l = launches()
+    a = l.get_from_web('')
+    month_list = ['January', 'Jan', 'February', 'Feb', 'March', 'April', 'May', 'June', 'July', 'August',
+                  'Aug', 'September', 'Sep', 'October', 'Oct', 'November', 'Nov', 'December', 'Dec']
+    previous_row = next_row = ''
+    session_list = []
+    new_list = ['date', 'name', 'time', 'location']
+    last_row_was_date = False
+    for row in a:
+        # make decisions
+        # print(row)
+        # create index for current row; this may be slow. Probably a better way, but it'll do for now
+        current_index = a.index(row)
+        previous_row = a[current_index - 1]
+        if current_index != len(a) - 1:
+            next_row = a[current_index + 1]
+
+        if last_row_was_date:
+            new_list.append(unicodedata.normalize('NFKD', row).strip())
+            last_row_was_date = False
+            continue
+
+        last_row_was_date = False
+        # next should be name
+
+        # more if conditions to check for the data we do not want; brackets and such
+        if any(x in row for x in month_list):
+            # print(row)
+            found = row.find('[')
+            foundl = len(new_list)
+            if row.find('[') == - 1 and len(row) < 20:
+                # if len(new_list) < 4:
+                #     print('bp')
+                new_list = []
+                session_list.append(new_list)
+                new_list.append(unicodedata.normalize('NFKD', row).strip())
+                last_row_was_date = True
+                # print(row)
+                continue
+
+        if previous_row == 'Launch':
+
+        if previous_row == 'Launch site:':
+            # print('next is launch site:')
+            new_list.append(unicodedata.normalize('NFKD', row).strip())
+            continue
+        if previous_row == 'Launch time:':
+            # print('next one is important')
+            new_list.append(unicodedata.normalize('NFKD', row).strip())
+            continue
+        if previous_row == 'Launch window:' or previous_row == 'Launch time:' or previous_row == 'Launch\nwindow:':
+            new_list.append(unicodedata.normalize('NFKD', row).strip())
+            continue
+
+    count = 0
+    for list in session_list:
+        count += 1
+        if len(list) < 4:
+            print(list)
+            print(session_list.index(list))
+            print(a.index(list[0]))
+
+    print(count)
+    # print(a[2360:2380])
+    #251
+    #2382
+    print('d')
